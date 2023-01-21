@@ -20,6 +20,34 @@ function loader(element) {
     }, 300);
 }
 
+
+const handleVoiceInput = (text) => {
+    if (!('webkitSpeechRecognition' in window)) {
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+        let result = event.results[event.resultIndex];
+        if (result.isFinal) {
+            setVoiceInput(result[0].transcript);
+            handleSubmit(result[0].transcript);
+        }
+    }
+    recognition.start();
+}
+
+const handleVoiceOutput = (text) => {
+    if (!('speechSynthesis' in window)) {
+        return;
+    }
+    const msg = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(msg);
+}
+
 function typeText(element, text) {
     let index = 0
 
@@ -83,10 +111,12 @@ const handleSubmit = async (e) => {
     // specific message div 
     const messageDiv = document.getElementById(uniqueId)
 
+
+
     // messageDiv.innerHTML = "..."
     loader(messageDiv)
 
-    const response = await fetch('https://gbudy.onrender.com', {
+    const response = await fetch('http://localhost:5000', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -104,6 +134,7 @@ const handleSubmit = async (e) => {
         const parsedData = data.bot.trim() // trims any trailing spaces/'\n' 
 
         typeText(messageDiv, parsedData)
+        handleVoiceOutput(parsedData)
     } else {
         const err = await response.text()
 
@@ -118,3 +149,5 @@ form.addEventListener('keyup', (e) => {
         handleSubmit(e)
     }
 })
+
+

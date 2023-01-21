@@ -21,6 +21,42 @@ app.get('/', async (req, res) => {
     })
 })
 
+app.get('/voice', (req, res) => {
+    res.status(200).send({
+        message: 'Server is ready to receive voice input.'
+    });
+});
+
+
+app.post('/voice', async (req, res) => {
+    try {
+        const voiceInput = req.body.voiceInput;
+
+        const response = await openai.createCompletion({
+            model: "text-davinci-003",
+            prompt: `${voiceInput}`,
+            temperature: 0,
+            max_tokens: 3000,
+            top_p: 1,
+            frequency_penalty: 0.5,
+            presence_penalty: 0,
+        });
+
+        res.status(200).send({
+            bot: response.data.choices[0].text
+        });
+
+    } catch (error) {
+        console.error(error)
+        res.status(500).send(error || 'Something went wrong');
+    }
+});
+
+
+
+
+
+
 app.post('/', async (req, res) => {
     try {
         const prompt = req.body.prompt;
